@@ -6,9 +6,9 @@ import { AnimatedNumber } from "./AnimatedNumber";
 
 const R = 47;
 
-type Props = { slices: Slice[]; total: number; label: string; active: string | null };
+type Props = { slices: Slice[]; total: number; label: string; active: string | null; onSelect?: (slice: Slice) => void };
 
-export function Donut({ slices, total, label, active }: Props) {
+export function Donut({ slices, total, label, active, onSelect }: Props) {
   const [drawn, setDrawn] = useState(false);
   const sig = slices.map((s) => `${s.id}:${s.pct.toFixed(1)}`).join("|");
 
@@ -24,7 +24,7 @@ export function Donut({ slices, total, label, active }: Props) {
 
   return (
     <div className="donut" role="img" aria-label={`${label}: ${brl.format(total)}. ${summary || "Sem dados"}`}>
-      <svg viewBox="0 0 120 120" aria-hidden="true">
+      <svg viewBox="0 0 120 120" aria-hidden="true" className={onSelect ? "donut-click" : undefined}>
         <circle cx="60" cy="60" r={R} fill="none" stroke="var(--track)" strokeWidth="9" />
         <g transform="rotate(-90 60 60)">
           {slices.map((s, i) => {
@@ -43,7 +43,8 @@ export function Donut({ slices, total, label, active }: Props) {
                 strokeDasharray={drawn ? `${len} ${100 - len}` : "0 100"}
                 strokeDashoffset={-offset}
                 opacity={active && active !== s.id ? 0.28 : 1}
-                style={{ transition: `stroke-dasharray 0.8s cubic-bezier(0.22,1,0.36,1) ${i * 60}ms, stroke-width 0.2s ease, opacity 0.2s ease` }}
+                onClick={onSelect ? () => onSelect(s) : undefined}
+                style={{ cursor: onSelect ? "pointer" : undefined, pointerEvents: onSelect ? "stroke" : undefined, transition: `stroke-dasharray 0.8s cubic-bezier(0.22,1,0.36,1) ${i * 60}ms, stroke-width 0.2s ease, opacity 0.2s ease` }}
               />
             );
             offset += s.pct;

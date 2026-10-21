@@ -662,3 +662,34 @@ input[type="date"]::-webkit-calendar-picker-indicator { margin: 0 0 0 auto; padd
 .scope-box { display: grid; gap: 8px; }
 .scope-box .seg { max-width: 360px; }
 @media (min-width: 960px) { .top { justify-content: space-between; } }
+
+/* ======== Sem zoom no celular ======== */
+html, body { touch-action: pan-x pan-y; -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+/* O iPhone dá zoom sozinho ao tocar num campo com fonte menor que 16px: campos com 16px evitam isso. */
+@media (max-width: 900px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="color"]), select, textarea { font-size: 16px !important; }
+}
+.donut-click circle { cursor: pointer; }
+
+/* ======== Categorias clicáveis e pop-up de lançamentos da categoria ======== */
+.legend-row { cursor: pointer; }
+.legend-row td:last-child svg { vertical-align: -2px; color: var(--muted); }
+.legend-row:focus-visible { outline: 2px solid var(--ring); outline-offset: -2px; }
+.sheet-lg { width: min(640px, 100%); }
+.ce-title { min-width: 0; }
+.ce-title h2 { display: flex; align-items: center; gap: 10px; overflow-wrap: anywhere; }
+.ce-total { font-size: 1.6rem; font-family: var(--display); }
+.ce-groups { display: grid; gap: 16px; }
+.ce-group-h { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+.ce-list { display: grid; }
+.ce-row { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.ce-row:first-child { border-top: 0; }
+.ce-main { display: grid; min-width: 0; }
+.ce-desc { overflow-wrap: anywhere; }
+.ce-amount { white-space: nowrap; text-align: right; }
+.ce-amount small { font-weight: 400; }
+.sheet-lg .sheet-body { max-height: calc(88dvh - 2px); }
+.legend-name { display: grid; min-width: 0; }
+.legend-members { overflow-wrap: anywhere; line-height: 1.3; }
+.legend td:first-child { align-items: flex-start; }
+.legend td:first-child .dot { margin-top: 7px; }

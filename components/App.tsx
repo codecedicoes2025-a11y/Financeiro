@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState, type CSSProperties, type Dispatch } from "react";
-import { fmtBR, presetRange, startOfMonth, today, type Range } from "@/lib/dates";
+import { fmtBR, presetRange, rangeLabel, startOfMonth, today, type Range } from "@/lib/dates";
 import { fmtMoney, uid } from "@/lib/money";
-import { brl, cashBalance, entriesIn, monthlySeries, signedBrl, summarize } from "@/lib/stats";
+import { brl, cashBalance, entriesIn, monthlySeries, signedBrl, summarize, type Slice } from "@/lib/stats";
 import { combineBooks, viewOf, type Action, type RootAction } from "@/lib/store";
 import type { Currency, Entry, EntryType, Root, Workspace } from "@/lib/types";
 import { useLiveRate } from "@/lib/useLiveRate";
 import { AnimatedNumber } from "./AnimatedNumber";
+import { CategoryEntriesDialog } from "./CategoryEntriesDialog";
 import { EntryDialog } from "./EntryDialog";
 import { EntryForm } from "./EntryForm";
 import { Icon, type IconName } from "./Icon";
@@ -106,7 +107,10 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
   );
 
   const periodEntries = useMemo(() => entriesIn(state, range), [state, range]);
-  const summary = useMemo(() => summarize(entriesIn(resumo, range), resumo), [resumo, range]);
+  const resumoEntries = useMemo(() => entriesIn(resumo, range), [resumo, range]);
+  const summary = useMemo(() => summarize(resumoEntries, resumo), [resumoEntries, resumo]);
+  // Categoria clicada nas pizzas: abre os lançamentos dela.
+  const [picked, setPicked] = useState<{ slice: Slice; kind: EntryType } | null>(null);
 
   // Saldo do caixa vale para o fim do período (até hoje, se o período ainda não acabou).
   const t = today();
@@ -225,8 +229,8 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
                 <p className="muted small">Saldo informado para o dia 01 do mês + entradas − saídas do mês, até {fmtBR(asOf)}. A cada mês recomeça.</p>
               </section>
 
-              <PiePanel title="Para onde vão os gastos" label="Gastos" emptyText="Sem saídas neste período." slices={summary.expenses} total={summary.expense} index={4} />
-              <PiePanel title="De onde vêm as entradas" label="Entradas" emptyText="Sem entradas neste período." slices={summary.incomes} total={summary.income} index={5} />
+              <PiePanel title="Para onde vão os gastos" label="Gastos" emptyText="Sem saídas neste período." slices={summary.expenses} total={summary.expense} index={4} onSelect={(slice) => setPicked({ slice, kind: "out" })} />
+              <PiePanel title="De onde vêm as entradas" label="Entradas" emptyText="Sem entradas neste período." slices={summary.incomes} total={summary.income} index={5} onSelect={(slice) => setPicked({ slice, kind: "in" })} />
 
               <section className="panel panel-trend" style={{ "--i": 6 } as CSSProperties} aria-labelledby="trend-h">
                 <h2 id="trend-h">Entradas e saídas por mês</h2>
@@ -338,6 +342,15 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
           </button>
         ))}
       </nav>
+
+      <CategoryEntriesDialog
+        slice={picked?.slice ?? null}
+        kind={picked?.kind ?? "out"}
+        state={resumo}
+        entries={resumoEntries}
+        periodLabel={rangeLabel(range)}
+        onClose={() => setPicked(null)}
+      />
 
       <EntryDialog
         entry={editing}

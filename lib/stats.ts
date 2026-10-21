@@ -12,9 +12,11 @@ export function signedBrl(e: Entry, accounts: Account[], usdBrl: number): number
   return e.type === "in" ? v : -v;
 }
 
-export type Slice = { id: string; name: string; color: string; value: number; pct: number };
+/** `ids`: categorias que formam a fatia (mais de uma em "Demais categorias"). */
+export type Slice = { id: string; name: string; color: string; value: number; pct: number; ids: string[]; /** Só em "Demais categorias": nomes das categorias agrupadas. */ members?: string[] };
 const MAX_SLICES = 6;
-const REST_COLOR = "#64748B";
+/** Cor de "Demais categorias" e de categorias sem cadastro: um cinza claro que aparece bem nos temas claro e escuro. */
+const REST_COLOR = "var(--muted-2)";
 
 function toSlices(totals: Map<string, number>, categories: Category[]): Slice[] {
   const sum = [...totals.values()].reduce((a, b) => a + b, 0);
@@ -22,13 +24,14 @@ function toSlices(totals: Map<string, number>, categories: Category[]): Slice[] 
   const sorted = [...totals.entries()]
     .map(([id, value]) => {
       const c = categories.find((x) => x.id === id);
-      return { id, name: c?.name ?? "Sem categoria", color: c?.color ?? REST_COLOR, value, pct: (value / sum) * 100 };
+      return { id, name: c?.name ?? "Sem categoria", color: c?.color ?? REST_COLOR, value, pct: (value / sum) * 100, ids: [id] };
     })
     .sort((a, b) => b.value - a.value);
   if (sorted.length <= MAX_SLICES) return sorted;
   const head = sorted.slice(0, MAX_SLICES - 1);
-  const value = sorted.slice(MAX_SLICES - 1).reduce((a, s) => a + s.value, 0);
-  return [...head, { id: "__rest", name: "Demais categorias", color: REST_COLOR, value, pct: (value / sum) * 100 }];
+  const rest = sorted.slice(MAX_SLICES - 1);
+  const value = rest.reduce((a, s) => a + s.value, 0);
+  return [...head, { id: "__rest", name: "Demais categorias", color: REST_COLOR, value, pct: (value / sum) * 100, ids: rest.map((s) => s.id), members: rest.map((s) => s.name) }];
 }
 
 export type Summary = { income: number; expense: number; result: number; expenses: Slice[]; incomes: Slice[] };

@@ -19,6 +19,9 @@ type Props = {
   onDelete?: () => void;
 };
 
+/** Tempo parado, sem digitar, até o valor ser completado sozinho. */
+const IDLE_FORMAT_MS = 2500;
+
 const NEW_ACCOUNT = "__new";
 const NEW_CATEGORY = "__newcat";
 
@@ -104,7 +107,8 @@ export function EntryForm({ accounts, categories, initial, submitLabel, onSubmit
   const onAmountChange = (value: string) => {
     setAmountText(value);
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(formatNow, 700);
+    // Só completa "R$ 0,00" depois de uma pausa longa (ou ao sair do campo), para não atrapalhar a digitação.
+    timer.current = setTimeout(formatNow, IDLE_FORMAT_MS);
   };
 
   function pickCategory(value: string) {
