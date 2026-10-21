@@ -107,8 +107,9 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
   );
 
   const periodEntries = useMemo(() => entriesIn(state, range), [state, range]);
-  const resumoEntries = useMemo(() => entriesIn(resumo, range), [resumo, range]);
-  const summary = useMemo(() => summarize(resumoEntries, resumo), [resumoEntries, resumo]);
+  // Em "PF + PJ" só o caixa soma os dois livros; entradas, saídas, gráficos e lançamentos são do livro atual (PF).
+  const resumoEntries = useMemo(() => entriesIn(state, range), [state, range]);
+  const summary = useMemo(() => summarize(resumoEntries, state), [resumoEntries, state]);
   // Categoria clicada nas pizzas: abre os lançamentos dela.
   const [picked, setPicked] = useState<{ slice: Slice; kind: EntryType } | null>(null);
 
@@ -118,7 +119,7 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
   const cash = useMemo(() => cashBalance(resumo, asOf), [resumo, asOf]);
 
   const year = range.to.slice(0, 4);
-  const series = useMemo(() => monthlySeries(resumo, year, range.to.slice(0, 7)), [resumo, year, range.to]);
+  const series = useMemo(() => monthlySeries(state, year, range.to.slice(0, 7)), [state, year, range.to]);
 
   const accById = useMemo(() => new Map(state.accounts.map((a) => [a.id, a])), [state.accounts]);
   const catById = useMemo(() => new Map(state.categories.map((c) => [c.id, c])), [state.categories]);
@@ -174,7 +175,7 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
                         PF + PJ
                       </button>
                     </div>
-                    {both && <p className="muted small">Somando os caixas, entradas e saídas de Finanças PF e Finanças PJ. Para lançar ou editar, use cada livro separado.</p>}
+                    {both && <p className="muted small">Somando só os caixas de Finanças PF e Finanças PJ. Entradas, saídas e gráficos continuam só de Finanças PF.</p>}
                   </div>
                 )}
                 <PeriodPicker range={range} onChange={setRange} />
@@ -234,7 +235,7 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
 
               <section className="panel panel-trend" style={{ "--i": 6 } as CSSProperties} aria-labelledby="trend-h">
                 <h2 id="trend-h">Entradas e saídas por mês</h2>
-                {resumo.entries.some((e) => e.date.startsWith(year)) ? <TrendChart data={series} year={year} /> : <p className="muted small">Sem lançamentos em {year}.</p>}
+                {state.entries.some((e) => e.date.startsWith(year)) ? <TrendChart data={series} year={year} /> : <p className="muted small">Sem lançamentos em {year}.</p>}
               </section>
 
               {hasUsd && (
@@ -346,7 +347,7 @@ export default function App({ root, dispatchRoot, ws, onSwitchWorkspace, onResto
       <CategoryEntriesDialog
         slice={picked?.slice ?? null}
         kind={picked?.kind ?? "out"}
-        state={resumo}
+        state={state}
         entries={resumoEntries}
         periodLabel={rangeLabel(range)}
         onClose={() => setPicked(null)}
